@@ -98,7 +98,7 @@
       <request-limit max-concurrent-requests="15000" name="limit-connections" queue-size="100"/>
       <response-header header-name="MY_HEADER" header-value="someValue" name="headers"/>
       <gzip name="static-gzip"/>
-      <error-page code="404" name="404-handler" path="/opt/data/404.html"/>
+      <error-page code="404" name="404-handler" path="${error-page.path:/opt/data/404.html}"/>
       <mod-cluster advertise-frequency="1000" advertise-path="/foo" advertise-protocol="ajp"
                    advertise-socket-binding="advertise-socket-binding" broken-node-timeout="1000"
                    cached-connections-per-thread="10" connection-idle-timeout="10"

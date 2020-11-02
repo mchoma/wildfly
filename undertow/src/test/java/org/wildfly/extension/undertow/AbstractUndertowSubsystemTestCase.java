@@ -35,6 +35,8 @@ import io.undertow.predicate.Predicates;
 import io.undertow.server.DefaultByteBufferPool;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.handlers.PathHandler;
+import io.undertow.server.handlers.PredicateHandler;
+import io.undertow.server.handlers.error.FileErrorPageHandler;
 import org.jboss.as.controller.ControlledProcessStateService;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.RunningMode;
@@ -83,6 +85,10 @@ public abstract class AbstractUndertowSubsystemTestCase extends AbstractSubsyste
         System.setProperty("jboss.server.server.dir", System.getProperty("java.io.tmpdir"));
     }
 
+    public static void setExpressionResolvingProperty() {
+        System.setProperty("error-page.path", "/opt/data/504.html");
+    }
+
     @Override
       protected Properties getResolvedProperties() {
           Properties properties = new Properties();
@@ -97,6 +103,7 @@ public abstract class AbstractUndertowSubsystemTestCase extends AbstractSubsyste
             Throwable t = mainServices.getBootError();
             Assert.fail("Boot unsuccessful: " + (t != null ? t.toString() : "no boot error provided"));
         }
+
         ServiceController connectionLimiter = mainServices.getContainer()
                 .getService(UndertowService.FILTER.append("limit-connections"));
         connectionLimiter.setMode(ServiceController.Mode.ACTIVE);
@@ -189,6 +196,15 @@ public abstract class AbstractUndertowSubsystemTestCase extends AbstractSubsyste
         Assert.assertFalse(accessLogService.isRotate());
     }
 
+    public static void testRuntimeExpressionResolving(KernelServices mainServices) throws Exception {
+        ServiceController errorPageServiceController = mainServices.getContainer()
+                .getService(UndertowService.FILTER.append("404-handler"));
+        errorPageServiceController.setMode(ServiceController.Mode.ACTIVE);
+        FilterService errorPageService = (FilterService) awaitServiceValue(errorPageServiceController);
+        PredicateHandler errorPageResult = (PredicateHandler) errorPageService.createHttpHandler(Predicates.truePredicate(), new PathHandler());
+        Assert.assertNotNull("handler should have been created", errorPageResult);
+        Assert.assertEquals ( "/opt/data/504.html",  ((FileErrorPageHandler) errorPageResult.getTrueHandler()).getFile().toString());
+    }
 
     static final AdditionalInitialization DEFAULT = new DefaultInitialization();
     static final AdditionalInitialization RUNTIME = new RuntimeInitialization();

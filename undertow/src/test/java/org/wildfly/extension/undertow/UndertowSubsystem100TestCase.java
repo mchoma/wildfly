@@ -54,6 +54,14 @@ public class UndertowSubsystem100TestCase extends AbstractUndertowSubsystemTestC
     }
 
     @Test
+    public void testExpressionsResolving() throws Exception {
+        setExpressionResolvingProperty();
+        KernelServicesBuilder builder = createKernelServicesBuilder(RUNTIME).setSubsystemXml(getSubsystemXml());
+        KernelServices mainServices = builder.build();
+        testRuntimeExpressionResolving(mainServices);
+    }
+
+    @Test
     public void testRuntime() throws Exception {
         setProperty();
         KernelServicesBuilder builder = createKernelServicesBuilder(RUNTIME).setSubsystemXml(getSubsystemXml());
